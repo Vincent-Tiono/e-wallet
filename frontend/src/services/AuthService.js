@@ -3,7 +3,8 @@ import axios from './axios';
 const login = (body) => {
   const url = '/auth/login';
   return axios.post(url, body).then((response) => {
-    localStorage.setItem('user', JSON.stringify(response.data.data));
+    console.log('Login response:', response);
+    localStorage.setItem('user', JSON.stringify(response.data));
     return response.data;
   });
 };
@@ -17,7 +18,10 @@ const logout = () => {
   localStorage.removeItem('user');
 };
 
-const getCurrentUser = () => JSON.parse(localStorage.getItem('user'));
+const getCurrentUser = () => {
+  const user = localStorage.getItem('user');
+  return user ? JSON.parse(user) : null;
+};
 
 const AuthService = {
   login,

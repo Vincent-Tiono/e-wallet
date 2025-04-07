@@ -19,8 +19,8 @@ export default function WithdrawFunds() {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const [formValues, setFormValues] = useState(defaultValues);
-  const [toWalletIbans, setFromWalletIbans] = useState([]);
-  const [toWalletIban, setFromWalletIban] = useState();
+  const [fromWalletIbans, setFromWalletIbans] = useState([]);
+  const [fromWalletIban, setFromWalletIban] = useState();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -32,18 +32,29 @@ export default function WithdrawFunds() {
 
   useEffect(() => {
     const userId = AuthService.getCurrentUser()?.id;
-    HttpService.getWithAuth(`/wallets/users/${userId}`).then((result) => {
-      setFromWalletIbans(result.data);
-    });
-  }, []);
+    HttpService.getWithAuth(`/wallets/users/${userId}`)
+      .then((result) => {
+        setFromWalletIbans(result);
+      })
+      .catch((error) => {
+        if (error.response?.data?.errors) {
+          error.response?.data?.errors.map((e) => enqueueSnackbar(e.message, { variant: 'error' }));
+        } else if (error.response?.data?.message) {
+          enqueueSnackbar(error.response?.data?.message, { variant: 'error' });
+        } else {
+          enqueueSnackbar('Failed to load wallets', { variant: 'error' });
+        }
+      });
+  }, [enqueueSnackbar]);
 
-  const handleWalletChange = (event) => {
-    setFromWalletIban(event.iban);
-    setFormValues({
-      ...formValues,
-      fromWalletIban: event.iban,
-      toWalletIban: event.iban,
-    });
+  const handleWalletChange = (event, selectedWallet) => {
+    if (selectedWallet) {
+      setFromWalletIban(selectedWallet.iban);
+      setFormValues({
+        ...formValues,
+        fromWalletIban: selectedWallet.iban,
+      });
+    }
   };
 
   const handleSubmit = (event) => {
@@ -85,13 +96,13 @@ export default function WithdrawFunds() {
               ListboxProps={{ style: { maxHeight: 200, overflow: 'auto' } }}
               required
               disablePortal
-              id="toWalletIban"
+              id="fromWalletIban"
               noOptionsText="no records"
-              options={toWalletIbans}
-              getOptionLabel={(toWalletIban) => toWalletIban.name}
+              options={fromWalletIbans}
+              getOptionLabel={(fromWalletIban) => fromWalletIban.name}
               isOptionEqualToValue={(option, value) => option.name === value.name}
               onChange={(event, newValue) => {
-                handleWalletChange(newValue);
+                handleWalletChange(event, newValue);
               }}
               renderInput={(params) => <TextField {...params} label="Wallet" />}
             />

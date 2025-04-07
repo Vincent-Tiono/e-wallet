@@ -32,17 +32,29 @@ export default function WalletToWallet() {
 
   useEffect(() => {
     const userId = AuthService.getCurrentUser()?.id;
-    HttpService.getWithAuth(`/wallets/users/${userId}`).then((result) => {
-      setFromWalletIbans(result.data);
-    });
-  }, []);
+    HttpService.getWithAuth(`/wallets/users/${userId}`)
+      .then((result) => {
+        setFromWalletIbans(result);
+      })
+      .catch((error) => {
+        if (error.response?.data?.errors) {
+          error.response?.data?.errors.map((e) => enqueueSnackbar(e.message, { variant: 'error' }));
+        } else if (error.response?.data?.message) {
+          enqueueSnackbar(error.response?.data?.message, { variant: 'error' });
+        } else {
+          enqueueSnackbar('Failed to load wallets', { variant: 'error' });
+        }
+      });
+  }, [enqueueSnackbar]);
 
-  const handleWalletChange = (event) => {
-    setFromWalletIban(event.iban);
-    setFormValues({
-      ...formValues,
-      fromWalletIban: event.iban,
-    });
+  const handleWalletChange = (event, selectedWallet) => {
+    if (selectedWallet) {
+      setFromWalletIban(selectedWallet.iban);
+      setFormValues({
+        ...formValues,
+        fromWalletIban: selectedWallet.iban,
+      });
+    }
   };
 
   const handleSubmit = (event) => {
@@ -90,7 +102,7 @@ export default function WalletToWallet() {
               getOptionLabel={(fromWalletIban) => fromWalletIban.name}
               isOptionEqualToValue={(option, value) => option.name === value.name}
               onChange={(event, newValue) => {
-                handleWalletChange(newValue);
+                handleWalletChange(event, newValue);
               }}
               renderInput={(params) => <TextField {...params} label="Sender Wallet" />}
             />

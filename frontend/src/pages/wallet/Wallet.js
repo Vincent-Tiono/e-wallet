@@ -25,8 +25,7 @@ import HttpService from '../../services/HttpService';
 import WalletListHead from './WalletListHead';
 
 const TABLE_HEAD = [
-  { id: 'id', label: 'Id', alignRight: false, firstColumn: true },
-  { id: 'name', label: 'Name', alignRight: false },
+  { id: 'name', label: 'Name', alignRight: false, firstColumn: true },
   { id: 'balance', label: 'Balance', alignRight: false },
   { id: 'userId', label: 'User', alignRight: false },
   { id: 'iban', label: 'IBAN', alignRight: false },
@@ -60,16 +59,21 @@ export default function Wallet() {
   };
 
   useEffect(() => {
+    console.log('Component mounted, fetching data...');
     fetchData();
   }, []);
 
   const fetchData = () => {
     const userId = AuthService.getCurrentUser()?.id;
+    console.log('Fetching data for user ID:', userId);
     HttpService.getWithAuth(`/wallets/users/${userId}`)
       .then((response) => {
-        setData(response.data);
+        console.log('Received wallet data:', response);
+        setData(response);
+        console.log('Data state after setting:', data);
       })
       .catch((error) => {
+        console.error('Error fetching wallets:', error);
         if (error?.response?.status === 401) {
           navigate('/login');
         } else if (error.response?.data?.errors) {
@@ -81,6 +85,8 @@ export default function Wallet() {
         }
       });
   };
+
+  console.log('Current data in render:', data);
 
   return (
     <>
@@ -106,16 +112,16 @@ export default function Wallet() {
               <Table>
                 <WalletListHead headLabel={TABLE_HEAD} />
                 <TableBody>
-                  {data &&
+                  {data && data.length > 0 ? (
                     data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                      console.log('Rendering row:', row);
                       const { id, name, balance, user, iban } = row;
                       const selectedRecord = selected.indexOf(name) !== -1;
                       return (
                         <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedRecord}>
                           <TableCell align="left" sx={{ paddingLeft: 5 }}>
-                            {id}
+                            {name}
                           </TableCell>
-                          <TableCell align="left">{name}</TableCell>
                           <TableCell align="left">{balance}</TableCell>
                           <TableCell align="left">{user.fullName}</TableCell>
                           <TableCell align="left">{iban}</TableCell>
@@ -126,10 +132,17 @@ export default function Wallet() {
                           </TableCell>
                         </TableRow>
                       );
-                    })}
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center">
+                        No wallets found
+                      </TableCell>
+                    </TableRow>
+                  )}
                   {emptyRows > 0 && (
                     <TableRow style={{ height: 53 * emptyRows }}>
-                      <TableCell colSpan={6} />
+                      <TableCell colSpan={5} />
                     </TableRow>
                   )}
                 </TableBody>

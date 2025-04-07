@@ -6,7 +6,6 @@ import com.github.yildizmy.domain.enums.RoleType;
 import com.github.yildizmy.domain.entity.User;
 import com.github.yildizmy.service.RoleService;
 import org.mapstruct.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.HashSet;
@@ -16,19 +15,16 @@ import java.util.List;
  * Mapper used for mapping SignupRequest fields.
  */
 @Mapper(componentModel = "spring",
-        uses = {PasswordEncoder.class, RoleService.class},
-        injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+        uses = {PasswordEncoder.class, RoleService.class})
 public abstract class SignupRequestMapper {
 
     private PasswordEncoder passwordEncoder;
     private RoleService roleService;
 
-    @Autowired
     public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Autowired
     public void setRoleService(RoleService roleService) {
         this.roleService = roleService;
     }

@@ -19,8 +19,9 @@ export default function AddFunds() {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const [formValues, setFormValues] = useState(defaultValues);
-  const [toWalletIbans, setFromWalletIbans] = useState([]);
-  const [toWalletIban, setFromWalletIban] = useState();
+  const [toWalletIbans, setToWalletIbans] = useState([]);
+  const [fromWalletIbans, setFromWalletIbans] = useState([]);
+  const [toWalletIban, setToWalletIban] = useState();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -32,18 +33,38 @@ export default function AddFunds() {
 
   useEffect(() => {
     const userId = AuthService.getCurrentUser()?.id;
-    HttpService.getWithAuth(`/wallets/users/${userId}`).then((result) => {
-      setFromWalletIbans(result.data);
-    });
-  }, []);
+    HttpService.getWithAuth(`/wallets/users/${userId}`)
+      .then((result) => {
+        setToWalletIbans(result);
+        setFromWalletIbans(result);
+        
+        // Set the first wallet as the source wallet if available
+        if (result && result.length > 0) {
+          setFormValues({
+            ...formValues,
+            fromWalletIban: result[0].iban,
+          });
+        }
+      })
+      .catch((error) => {
+        if (error.response?.data?.errors) {
+          error.response?.data?.errors.map((e) => enqueueSnackbar(e.message, { variant: 'error' }));
+        } else if (error.response?.data?.message) {
+          enqueueSnackbar(error.response?.data?.message, { variant: 'error' });
+        } else {
+          enqueueSnackbar('Failed to load wallets', { variant: 'error' });
+        }
+      });
+  }, [enqueueSnackbar]);
 
-  const handleWalletChange = (event) => {
-    setFromWalletIban(event.iban);
-    setFormValues({
-      ...formValues,
-      fromWalletIban: event.iban,
-      toWalletIban: event.iban,
-    });
+  const handleWalletChange = (event, selectedWallet) => {
+    if (selectedWallet) {
+      setToWalletIban(selectedWallet.iban);
+      setFormValues({
+        ...formValues,
+        toWalletIban: selectedWallet.iban,
+      });
+    }
   };
 
   const handleSubmit = (event) => {
@@ -67,7 +88,7 @@ export default function AddFunds() {
   return (
     <>
       <Helmet>
-        <title> Addd Funds | e-Wallet </title>
+        <title> Add Funds | e-Wallet </title>
       </Helmet>
       <Card>
         <Grid container alignItems="left" justify="left" direction="column" sx={{ width: 400, padding: 5 }}>
@@ -91,7 +112,7 @@ export default function AddFunds() {
               getOptionLabel={(toWalletIban) => toWalletIban.name}
               isOptionEqualToValue={(option, value) => option.name === value.name}
               onChange={(event, newValue) => {
-                handleWalletChange(newValue);
+                handleWalletChange(event, newValue);
               }}
               renderInput={(params) => <TextField {...params} label="Receiver Wallet" />}
             />

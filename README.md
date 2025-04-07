@@ -79,5 +79,11 @@ In order to run and test the application, see details on [How to run?](backend/s
 
 * v1.0.0 Initial Release
 
+
+To run:
+root: docker compose up --build
+backend: ./mvnw spring-boot:run
+frontend: npm start
+
 <br/>
 <br/>

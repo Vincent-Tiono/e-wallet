@@ -24,8 +24,7 @@ import HttpService from '../../services/HttpService';
 import TransactionListHead from './TransactionListHead';
 
 const TABLE_HEAD = [
-  { id: 'id', label: 'Id', alignRight: false, firstColumn: true },
-  { id: 'fromWallet', label: 'Sender', alignRight: false },
+  { id: 'fromWallet', label: 'Sender', alignRight: false, firstColumn: true },
   { id: 'toWallet', label: 'Receiver', alignRight: false },
   { id: 'amount', label: 'Amount', alignRight: true },
   { id: 'description', label: 'Description', alignRight: false },
@@ -68,11 +67,20 @@ export default function Transaction() {
 
   const fetchData = () => {
     const userId = AuthService.getCurrentUser()?.id;
+    console.log('Fetching transactions for user:', userId);
     HttpService.getWithAuth(`/transactions/users/${userId}`)
       .then((response) => {
-        setData(response.data.content);
+        console.log('Received transactions data:', response);
+        if (response?.content && Array.isArray(response.content)) {
+          setData(response.content);
+        } else {
+          console.error('Invalid response format:', response);
+          enqueueSnackbar('Invalid data format received from server', { variant: 'error' });
+          setData([]);
+        }
       })
       .catch((error) => {
+        console.error('Error fetching transactions:', error);
         if (error?.response?.status === 401) {
           navigate('/login');
         } else if (error.response?.data?.errors) {
@@ -82,6 +90,7 @@ export default function Transaction() {
         } else {
           enqueueSnackbar(error.message, { variant: 'error' });
         }
+        setData([]);
       });
   };
 
@@ -102,21 +111,21 @@ export default function Transaction() {
               <Table>
                 <TransactionListHead headLabel={TABLE_HEAD} />
                 <TableBody>
-                  {data &&
+                  {data && data.length > 0 ? (
                     data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                      console.log('Rendering transaction row:', row);
                       const { id, amount, description, createdAt, fromWallet, toWallet, type, status } = row;
                       const selectedRecord = selected.indexOf(id) !== -1;
                       return (
                         <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedRecord}>
                           <TableCell align="left" sx={{ paddingLeft: 5 }}>
-                            {id}
+                            {`${fromWallet?.user?.firstName || ''} ${fromWallet?.user?.lastName || ''}`}
                           </TableCell>
-                          <TableCell align="left">{`${fromWallet.user.firstName} ${fromWallet.user.lastName}`}</TableCell>
-                          <TableCell align="left">{`${toWallet.user.firstName} ${toWallet.user.lastName}`}</TableCell>
+                          <TableCell align="left">{`${toWallet?.user?.firstName || ''} ${toWallet?.user?.lastName || ''}`}</TableCell>
                           <TableCell align="right">{amount}</TableCell>
                           <TableCell align="left">{description}</TableCell>
                           <TableCell align="left">{createdAt}</TableCell>
-                          <TableCell align="left">{type.name}</TableCell>
+                          <TableCell align="left">{type?.name || ''}</TableCell>
                           <TableCell align="left">
                             <Label color={status === 'SUCCESS' ? 'success' : 'warning'}>{sentenceCase(status)}</Label>
                           </TableCell>
@@ -127,10 +136,17 @@ export default function Transaction() {
                           </TableCell>
                         </TableRow>
                       );
-                    })}
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={8} align="center">
+                        No transactions found
+                      </TableCell>
+                    </TableRow>
+                  )}
                   {emptyRows > 0 && (
                     <TableRow style={{ height: 53 * emptyRows }}>
-                      <TableCell colSpan={6} />
+                      <TableCell colSpan={8} />
                     </TableRow>
                   )}
                 </TableBody>
@@ -140,7 +156,7 @@ export default function Transaction() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={data?.length > 0 ? data.length : 0}
+            count={data?.length || 0}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
