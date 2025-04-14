@@ -18,5 +18,6 @@ public class WalletResponse {
     private String iban;
     private String name;
     private BigDecimal balance;
+    private String ipAddress;
     private UserResponse user;
 }

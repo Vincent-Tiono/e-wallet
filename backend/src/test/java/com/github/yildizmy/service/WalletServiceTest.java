@@ -13,6 +13,7 @@ import com.github.yildizmy.exception.NoSuchElementFoundException;
 import com.github.yildizmy.domain.entity.Wallet;
 import com.github.yildizmy.repository.WalletRepository;
 import com.github.yildizmy.validator.IbanValidator;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -51,6 +52,9 @@ class WalletServiceTest {
 
     @Mock
     private IbanValidator ibanValidator;
+
+    @Mock
+    private HttpServletRequest httpRequest;
 
     @InjectMocks
     private WalletService walletService;
@@ -179,8 +183,9 @@ class WalletServiceTest {
         when(walletRepository.save(wallet)).thenReturn(wallet);
         when(walletTransactionRequestMapper.toTransactionDto(request)).thenReturn(new TransactionRequest());
         when(transactionService.create(any(TransactionRequest.class))).thenReturn(new CommandResponse(1L));
+        when(httpRequest.getRemoteAddr()).thenReturn("127.0.0.1");
 
-        CommandResponse result = walletService.create(request);
+        CommandResponse result = walletService.create(request, httpRequest);
 
         assertNotNull(result);
         assertEquals(1L, result.id());
@@ -198,7 +203,7 @@ class WalletServiceTest {
 
         when(walletRepository.existsByIbanIgnoreCase(anyString())).thenReturn(true);
 
-        assertThrows(ElementAlreadyExistsException.class, () -> walletService.create(request));
+        assertThrows(ElementAlreadyExistsException.class, () -> walletService.create(request, httpRequest));
         verify(walletRepository).existsByIbanIgnoreCase(request.getIban());
     }
 

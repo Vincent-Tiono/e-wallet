@@ -39,7 +39,13 @@ public class Wallet {
 
     @Column(nullable = false)
     private BigDecimal balance;
-
+    
+    @Column(length = 45)
+    private String ipAddress;
+    
+    @Column(name = "creation_date")
+    private java.time.LocalDateTime creationDate;
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;

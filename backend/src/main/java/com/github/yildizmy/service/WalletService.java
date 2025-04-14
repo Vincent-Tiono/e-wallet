@@ -14,6 +14,7 @@ import com.github.yildizmy.exception.InsufficientFundsException;
 import com.github.yildizmy.exception.NoSuchElementFoundException;
 import com.github.yildizmy.repository.WalletRepository;
 import com.github.yildizmy.validator.IbanValidator;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -109,16 +110,21 @@ public class WalletService {
      * Creates a new wallet using the given request parameters.
      *
      * @param request
+     * @param httpRequest
      * @return id of the created wallet
      */
     @Transactional
-    public CommandResponse create(WalletRequest request) {
+    public CommandResponse create(WalletRequest request, HttpServletRequest httpRequest) {
         if (walletRepository.existsByIbanIgnoreCase(request.getIban()))
             throw new ElementAlreadyExistsException(messageConfig.getMessage(ERROR_WALLET_IBAN_EXISTS));
         if (walletRepository.existsByUserIdAndNameIgnoreCase(request.getUserId(), request.getName()))
             throw new ElementAlreadyExistsException(messageConfig.getMessage(ERROR_WALLET_NAME_EXISTS));
 
         ibanValidator.isValid(request.getIban(), null);
+        
+        // Get and set the client's IP address
+        String ipAddress = getClientIp(httpRequest);
+        request.setIpAddress(ipAddress);
 
         final Wallet wallet = walletRequestMapper.toEntity(request);
         walletRepository.save(wallet);
@@ -128,6 +134,32 @@ public class WalletService {
         transactionService.create(walletTransactionRequestMapper.toTransactionDto(request));
 
         return CommandResponse.builder().id(wallet.getId()).build();
+    }
+
+    /**
+     * Extract client IP address from request
+     * 
+     * @param request
+     * @return IP address string
+     */
+    private String getClientIp(HttpServletRequest request) {
+        String ipAddress = null;
+        // Check for proxy forwarded headers
+        ipAddress = request.getHeader("X-Forwarded-For");
+        if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {
+            ipAddress = request.getHeader("Proxy-Client-IP");
+        }
+        if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {
+            ipAddress = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {
+            ipAddress = request.getRemoteAddr();
+        }
+        // For multiple proxies, first IP is client IP
+        if (ipAddress != null && ipAddress.contains(",")) {
+            ipAddress = ipAddress.split(",")[0].trim();
+        }
+        return ipAddress;
     }
 
     /**

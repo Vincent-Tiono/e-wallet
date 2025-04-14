@@ -13,6 +13,7 @@ export default function SignupForm() {
     username: '',
     email: '',
     password: '',
+    phoneNumber: '',
     roles: ['ROLE_USER'],
   };
 
@@ -31,6 +32,26 @@ export default function SignupForm() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    
+    // Validate field lengths before submission
+    const fieldLimits = {
+      username: 20,
+      phoneNumber: 20,
+      firstName: 50,
+      lastName: 50,
+      email: 50,
+    };
+    
+    let hasErrors = false;
+    Object.entries(fieldLimits).forEach(([field, limit]) => {
+      if (formValues[field] && formValues[field].length > limit) {
+        enqueueSnackbar(`${field} must be ${limit} characters or less`, { variant: 'error' });
+        hasErrors = true;
+      }
+    });
+    
+    if (hasErrors) return;
+    
     AuthService.signup(formValues)
       .then((response) => {
         enqueueSnackbar('Signed up successfully', { variant: 'success' });
@@ -77,15 +98,28 @@ export default function SignupForm() {
           required
           value={formValues.username}
           onChange={handleInputChange}
+          inputProps={{ maxLength: 20 }}
+          helperText="Maximum 20 characters"
         />
         <TextField
           id="email"
           name="email"
-          label="email"
+          label="Email"
           autoComplete="email"
           required
           value={formValues.email}
           onChange={handleInputChange}
+        />
+        <TextField
+          id="phoneNumber"
+          name="phoneNumber"
+          label="Phone Number"
+          autoComplete="tel"
+          required
+          value={formValues.phoneNumber}
+          onChange={handleInputChange}
+          inputProps={{ maxLength: 20 }}
+          helperText="Maximum 20 characters"
         />
         <TextField
           id="password"

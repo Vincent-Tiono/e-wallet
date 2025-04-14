@@ -29,6 +29,7 @@ const TABLE_HEAD = [
   { id: 'balance', label: 'Balance', alignRight: false },
   { id: 'userId', label: 'User', alignRight: false },
   { id: 'iban', label: 'IBAN', alignRight: false },
+  { id: 'ipAddress', label: 'IP Address', alignRight: false },
   { id: '' },
 ];
 
@@ -115,7 +116,7 @@ export default function Wallet() {
                   {data && data.length > 0 ? (
                     data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                       console.log('Rendering row:', row);
-                      const { id, name, balance, user, iban } = row;
+                      const { id, name, balance, user, iban, ipAddress } = row;
                       const selectedRecord = selected.indexOf(name) !== -1;
                       return (
                         <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedRecord}>
@@ -125,6 +126,7 @@ export default function Wallet() {
                           <TableCell align="left">{balance}</TableCell>
                           <TableCell align="left">{user.fullName}</TableCell>
                           <TableCell align="left">{iban}</TableCell>
+                          <TableCell align="left">{ipAddress || 'N/A'}</TableCell>
                           <TableCell align="right">
                             <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
                               <Iconify icon={'eva:more-vertical-fill'} />
@@ -135,14 +137,14 @@ export default function Wallet() {
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={5} align="center">
+                      <TableCell colSpan={6} align="center">
                         No wallets found
                       </TableCell>
                     </TableRow>
                   )}
                   {emptyRows > 0 && (
                     <TableRow style={{ height: 53 * emptyRows }}>
-                      <TableCell colSpan={5} />
+                      <TableCell colSpan={6} />
                     </TableRow>
                   )}
                 </TableBody>

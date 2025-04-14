@@ -6,6 +6,7 @@ import com.github.yildizmy.domain.enums.RoleType;
 import com.github.yildizmy.domain.entity.User;
 import com.github.yildizmy.service.RoleService;
 import org.mapstruct.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.HashSet;
@@ -14,19 +15,17 @@ import java.util.List;
 /**
  * Mapper used for mapping SignupRequest fields.
  */
-@Mapper(componentModel = "spring",
-        uses = {PasswordEncoder.class, RoleService.class})
+@Mapper(componentModel = "spring")
 public abstract class SignupRequestMapper {
 
-    private PasswordEncoder passwordEncoder;
-    private RoleService roleService;
-
-    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-    }
-
-    public void setRoleService(RoleService roleService) {
-        this.roleService = roleService;
+    @Autowired
+    protected PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    protected RoleService roleService;
+    
+    // Explicit no-args constructor for MapStruct
+    public SignupRequestMapper() {
     }
 
     @Mapping(target = "firstName", expression = "java(org.apache.commons.text.WordUtils.capitalizeFully(dto.getFirstName()))")

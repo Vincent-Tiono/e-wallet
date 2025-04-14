@@ -33,4 +33,7 @@ public class WalletRequest {
 
     @NotNull(message = "{validation.field.user.required}")
     private Long userId;
+    
+    @Size(max = 45, message = "{validation.field.ipaddress.length}")
+    private String ipAddress;
 }

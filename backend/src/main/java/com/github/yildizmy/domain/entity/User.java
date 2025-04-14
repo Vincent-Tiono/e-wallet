@@ -42,6 +42,9 @@ public class User {
     @Column(length = 100, nullable = false)
     private String password;
 
+    @Column(length = 20)
+    private String phoneNumber;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<Wallet> wallets = new HashSet<>();
 

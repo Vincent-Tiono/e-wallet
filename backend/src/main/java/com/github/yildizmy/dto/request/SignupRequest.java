@@ -3,6 +3,7 @@ package com.github.yildizmy.dto.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -39,6 +40,10 @@ public class SignupRequest {
     @Size(min = 6, max = 100, message = "{validation.user.password.length}")
     @NotBlank(message = "{validation.user.password.required}")
     private String password;
+    
+    @Size(max = 20, message = "{validation.user.phone.length}")
+    @Pattern(regexp = "^[+]?[(]?[0-9]{1,4}[)]?[-\\s.]?[0-9]{1,3}[-\\s.]?[0-9]{4,10}$", message = "{validation.user.phone.format}")
+    private String phoneNumber;
 
     private Set<String> roles;
 }

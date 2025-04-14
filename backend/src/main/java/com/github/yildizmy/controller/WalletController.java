@@ -5,6 +5,7 @@ import com.github.yildizmy.dto.request.WalletRequest;
 import com.github.yildizmy.dto.response.CommandResponse;
 import com.github.yildizmy.dto.response.WalletResponse;
 import com.github.yildizmy.service.WalletService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -79,12 +80,13 @@ public class WalletController {
      * Creates a new wallet using the given request parameters.
      *
      * @param request
+     * @param httpRequest
      * @return id of the created wallet wrapped by ResponseEntity<T>
      */
     @PreAuthorize("hasRole(T(com.github.yildizmy.domain.enums.RoleType).ROLE_USER)")
     @PostMapping
-    public ResponseEntity<CommandResponse> create(@Valid @RequestBody WalletRequest request) {
-        final CommandResponse response = walletService.create(request);
+    public ResponseEntity<CommandResponse> create(@Valid @RequestBody WalletRequest request, HttpServletRequest httpRequest) {
+        final CommandResponse response = walletService.create(request, httpRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
