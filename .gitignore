@@ -73,6 +73,8 @@ frontend/coverage
 # production
 frontend/build
 
+.env
+
 # misc
 frontend/.DS_Store
 frontend/.env
