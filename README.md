@@ -85,5 +85,8 @@ root: docker compose up --build
 backend: ./mvnw spring-boot:run
 frontend: npm start
 
+To kill port:
+lsof -i :8080 | grep LISTEN
+
 <br/>
 <br/>
